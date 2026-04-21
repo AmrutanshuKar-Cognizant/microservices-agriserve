@@ -13,7 +13,7 @@ public class FarmerResponseDTO {
 
     private String name;
 
-    private LocalDate dob;
+    private String dob;
 
     private String gender;
 

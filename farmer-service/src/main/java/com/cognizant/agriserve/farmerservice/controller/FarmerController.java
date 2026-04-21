@@ -57,12 +57,14 @@ public class FarmerController {
     }
 
     @GetMapping("/{farmerId}")
+    @PreAuthorize("hasRole('ExtensionOfficer', 'Admin')")
     public ResponseEntity<FarmerResponseDTO> getFarmerById(@PathVariable Long farmerId) {
         log.info("API Request: Fetching profile for Farmer ID: {}", farmerId);
         return ResponseEntity.ok(farmerService.getFarmerById(farmerId));
     }
 
     @PostMapping("/register")
+    @PreAuthorize("hasRole('SERVICE')")
     public ResponseEntity<Void> createFarmerProfile(@RequestBody RegisterFarmerDTO registerrequestdto){
       log.info("API request: Data Coming from Authservice:");
       return ResponseEntity.ok(farmerService.registerfarmer(registerrequestdto));

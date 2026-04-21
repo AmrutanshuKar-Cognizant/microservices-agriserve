@@ -9,6 +9,7 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -23,8 +24,9 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
 
-        // 1. Skip validation for Auth endpoints
-        if (path.contains("/auth/")) {
+        // 1. Skip JWT validation for auth endpoints AND internal errors
+        if (path.startsWith("/auth") || path.startsWith("/api/auth") || path.equals("/error")) {
+            log.info("Endpoint bypassed by JWT Filter: {}", path);
             return chain.filter(exchange);
         }
 
@@ -32,34 +34,42 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            log.warn("Missing Authorization Header for path: {}", path);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid Authorization header");
         }
 
+        // Extract token
         String token = authHeader.substring(7);
 
-        // 3. Validate Token (Authentication)
-        if (!jwtUtil.isTokenValid(token)) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+        // 3. Validate Token & Extract Data
+        try {
+            if (!jwtUtil.isTokenValid(token)) {
+                log.warn("Invalid Token for path: {}", path);
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
+            }
+
+            // Extract Info
+            String username = jwtUtil.extractUsername(token);
+            String role = jwtUtil.extractRole(token);
+            Long userId = jwtUtil.extractUserId(token);
+
+            log.info("Token validated for user: {} with role: {}", username, role);
+
+            // 4. Forward via headers to downstream microservices
+            ServerWebExchange mutatedExchange = exchange.mutate()
+                    .request(builder -> builder
+                            .header("X-Logged-In-User-Id", String.valueOf(userId))
+                            .header("X-User-Name", username)
+                            .header("X-User-Role", role)
+                            .build())
+                    .build();
+
+            return chain.filter(mutatedExchange);
+
+        } catch (Exception e) {
+            log.error("Error validating token for path: {}, error: {}", path, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token validation failed: " + e.getMessage());
         }
-
-        // 4. Extract Info
-        String username = jwtUtil.extractUsername(token);
-        String role = jwtUtil.extractRole(token);
-        Long userId = jwtUtil.extractUserId(token);
-
-        // 5. Forward via headers to downstream microservices
-        // The downstream services will now use @PreAuthorize to check the X-User-Role
-        ServerWebExchange mutatedExchange = exchange.mutate()
-                .request(builder -> builder
-                        .header("X-Logged-In-User-Id", String.valueOf(userId))
-                        .header("X-User-Name", username)
-                        .header("X-User-Role", role)
-                        .build())
-                .build();
-
-        return chain.filter(mutatedExchange);
     }
 
     @Override

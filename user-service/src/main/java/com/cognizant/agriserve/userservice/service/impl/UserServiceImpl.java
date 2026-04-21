@@ -7,6 +7,7 @@ import com.cognizant.agriserve.userservice.dto.UserRequestDTO;
 import com.cognizant.agriserve.userservice.dto.UserResponseDTO;
 import com.cognizant.agriserve.userservice.entity.User;
 import com.cognizant.agriserve.userservice.exception.ResourceNotFoundException;
+import com.cognizant.agriserve.userservice.exception.UserAlreadyExistsException;
 import com.cognizant.agriserve.userservice.service.UserService;
 
 import lombok.Builder;
@@ -141,7 +142,7 @@ public class UserServiceImpl implements UserService {
 
         if (userRepository.existsByEmail(dto.getEmail())) {
             log.warn("Registration failed: Email {} is already taken.", dto.getEmail());
-            throw new RuntimeException("Email is already in use!");
+            throw new UserAlreadyExistsException("Email is already in use!");
         }
 
         String encrypted = passwordencode.encode(dto.getPassword());
@@ -158,7 +159,7 @@ public class UserServiceImpl implements UserService {
             user.setRole(User.Role.Farmer); // Fallback
         }
 
-        user.setPhone(dto.getPhone()); // Assumes you added phone to RegisterRequestDTO
+        user.setPhone(dto.getContactInfo()); // Assumes you added phone to RegisterRequestDTO
         user.setStatus("ACTIVE"); // Make sure this matches your DB convention
 
         // The Magic Moment: Database saves the user and generates the ID

@@ -17,22 +17,8 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="compliance-service" />
-      </profile>
-      <profile name="Annotation profile for microservices" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
-        </processorPath>
-        <module name="trainingservice" />
-        <module name="configserver" />
-        <module name="advisory-service" />
-        <module name="Authservice" />
       </profile>
       <profile name="Annotation profile for compliance-service (1)" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -40,18 +26,36 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="compliance-service (1)" />
       </profile>
+      <profile name="Annotation profile for microservices" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
+        </processorPath>
+        <module name="trainingservice" />
+        <module name="configserver" />
+        <module name="user-service" />
+        <module name="advisory-service" />
+        <module name="Authservice" />
+      </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="apigateway (1)" target="17" />
+      <module name="apiGateway (1) (com.cognizant)" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Authservice" options="-parameters" />
       <module name="FeedbackandSatisfaction.Service" options="-parameters" />
       <module name="advisory-service" options="-parameters" />
+      <module name="apiGateway (1) (com.cognizant)" options="-parameters" />
       <module name="apigateway" options="-parameters" />
+      <module name="apigateway (1)" options="-parameters" />
       <module name="compliance-service" options="-parameters" />
       <module name="compliance-service (1)" options="-parameters" />
       <module name="configserver" options="-parameters" />

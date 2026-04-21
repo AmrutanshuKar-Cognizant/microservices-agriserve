@@ -45,7 +45,7 @@ public class Farmer {
     @NotBlank(message = "Contact info is required")
     @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone number format")
     @Column(unique = true, nullable = false)
-    private String phone;
+    private String contactInfo;
 
     @PositiveOrZero(message = "Land size cannot be negative")
     private Double landSize;

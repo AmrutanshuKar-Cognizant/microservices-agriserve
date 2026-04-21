@@ -79,7 +79,7 @@ public class FarmerServiceImpl implements FarmerService {
         farmer.setAddress(registerrequestdto.getAddress());
         farmer.setCropType(registerrequestdto.getCropType());
         farmer.setGender(registerrequestdto.getGender());
-        farmer.setPhone(registerrequestdto.getPhone());
+        farmer.setContactInfo(registerrequestdto.getContactInfo());
         farmer.setLandSize(registerrequestdto.getLandSize());
         farmer.setUserId(registerrequestdto.getUserId());
         farmerRepository.save(farmer);

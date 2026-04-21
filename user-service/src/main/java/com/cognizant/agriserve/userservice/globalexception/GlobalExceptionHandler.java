@@ -3,6 +3,7 @@ package com.cognizant.agriserve.userservice.globalexception;
 import com.cognizant.agriserve.userservice.dto.ErrorResponseDTO;
 import com.cognizant.agriserve.userservice.exception.ResourceNotFoundException;
 import com.cognizant.agriserve.userservice.exception.UnauthorizedActionException;
+import com.cognizant.agriserve.userservice.exception.UserAlreadyExistsException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -145,6 +146,25 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
+    // --- NEW: Catch 409: When an email or username already exists ---
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserAlreadyExists(
+            UserAlreadyExistsException ex,
+            HttpServletRequest request) {
+
+        log.warn("Registration Conflict: {}", ex.getMessage());
+
+        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+    // ----------------------------------------------------------------
 
     // Catch 409: Database Constraint Violations
     @ExceptionHandler(DataIntegrityViolationException.class)

@@ -12,7 +12,7 @@ public class RegisterFarmerDTO {
     private String dob;
     private String gender;
     private String address;
-    private String phone;
+    private String contactInfo;
     private Double landSize;
     private String cropType;
     private Long userId;
