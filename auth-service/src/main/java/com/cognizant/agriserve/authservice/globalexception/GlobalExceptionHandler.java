@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -164,5 +165,43 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // Catch Internal Authentication Errors (Thrown when Feign fails inside Spring Security's UserDetailsService)
+    @ExceptionHandler(InternalAuthenticationServiceException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInternalAuthenticationServiceException(
+            InternalAuthenticationServiceException ex,
+            HttpServletRequest request) {
+
+        log.error("Internal Auth Error at {}: {}", request.getRequestURI(), ex.getMessage());
+
+        int status = HttpStatus.SERVICE_UNAVAILABLE.value();
+        String errorType = "Service Unavailable";
+        String errorMessage = "The authentication service is temporarily unavailable. Please try again later.";
+
+        // Unwrap the exception to see if OpenFeign caused it
+        if (ex.getCause() instanceof FeignException) {
+            FeignException feignEx = (FeignException) ex.getCause();
+
+            // If the User Service returned 404 (User doesn't exist), treat it as a standard login failure
+            if (feignEx.status() == 404) {
+                status = HttpStatus.UNAUTHORIZED.value();
+                errorType = "Unauthorized";
+                errorMessage = "Invalid email or password.";
+            }
+            // If the User Service threw a 400 or 500 (like it did with "NONE_PROVIDED")
+            else {
+                errorMessage = "Failed to verify credentials with the User System.";
+            }
+        }
+
+        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                status,
+                errorType,
+                errorMessage,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(status).body(errorResponse);
     }
 }

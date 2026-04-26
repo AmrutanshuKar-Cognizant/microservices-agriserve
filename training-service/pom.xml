@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.cognizant.agriserve</groupId>
-	<artifactId>trainingservice</artifactId>
+	<artifactId>training-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>AgriServe Training Service</name>
 	<description>Microservice for managing Training Programs, Workshops and Participation</description>

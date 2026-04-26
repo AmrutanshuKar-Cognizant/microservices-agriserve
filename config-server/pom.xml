@@ -8,7 +8,7 @@
 		<version>4.0.5</version>
 		<relativePath/> </parent>
 	<groupId>com.cognizant.agriserve</groupId>
-	<artifactId>configserver</artifactId>
+	<artifactId>config-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>configserver</name>
 	<description>Config Server for AgriServe</description>

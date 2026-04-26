@@ -6,6 +6,7 @@ import com.cognizant.agriserve.farmerservice.dto.request.RegisterFarmerDTO;
 import com.cognizant.agriserve.farmerservice.dto.response.FarmerResponseDTO;
 import com.cognizant.agriserve.farmerservice.entity.Farmer;
 import com.cognizant.agriserve.farmerservice.exception.ResourceNotFoundException;
+import com.cognizant.agriserve.farmerservice.exception.UnauthorizedActionException;
 import com.cognizant.agriserve.farmerservice.service.FarmerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,16 +55,28 @@ public class FarmerServiceImpl implements FarmerService {
     }
 
     @Override
-    public List<FarmerResponseDTO> getAllFarmers() {
+    public List<FarmerResponseDTO> getAllFarmers(String role) {
         log.debug("Administrative fetch: Retrieving all farmer profiles");
+
+        // 1. Check Role Authorization
+        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("EXTENSIONOFFICER"))) {
+            throw new UnauthorizedActionException("Access Denied: Only Administrators and Extension Officers can view the full farmer list.");
+        }
+
         return farmerRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public FarmerResponseDTO getFarmerById(Long farmerId) {
+    public FarmerResponseDTO getFarmerById(Long farmerId, String role) {
         log.debug("Fetching profile by internal Farmer ID: {}", farmerId);
+
+        // 1. Check Role Authorization
+        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("EXTENSIONOFFICER"))) {
+            throw new UnauthorizedActionException("Access Denied: You do not have permission to view specific farmer profiles.");
+        }
+
         Farmer farmer = farmerRepository.findById(farmerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Farmer not found with ID: " + farmerId));
         return mapToResponse(farmer);

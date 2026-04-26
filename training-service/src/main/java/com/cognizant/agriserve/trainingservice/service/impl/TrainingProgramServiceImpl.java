@@ -7,8 +7,9 @@ import com.cognizant.agriserve.trainingservice.dto.response.TrainingProgramRespo
 import com.cognizant.agriserve.trainingservice.entity.TrainingProgram;
 import com.cognizant.agriserve.trainingservice.exception.ApiException;
 import com.cognizant.agriserve.trainingservice.exception.ResourceNotFoundException;
-import com.cognizant.agriserve.trainingservice.exception.UnauthorizedActionException; // <-- Added Import
+import com.cognizant.agriserve.trainingservice.exception.UnauthorizedActionException;
 import com.cognizant.agriserve.trainingservice.service.TrainingProgramService;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -28,16 +29,30 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
     private final ModelMapper modelMapper;
 
     @Override
-    public TrainingProgramResponseDTO createProgram(TrainingProgramRequestDTO requestDto) {
+    public TrainingProgramResponseDTO createProgram(TrainingProgramRequestDTO requestDto, String role) {
         log.info("Validating business rules for new Training Program...");
 
-        boolean managerExists = userClient.checkUserExists(requestDto.getManagerId());
-        if (!managerExists) {
-            throw new ResourceNotFoundException("Manager ID " + requestDto.getManagerId() + " does not exist in the User System.");
+        // 1. ROLE-BASED ACCESS CONTROL
+        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("PROGRAMMANAGER"))) {
+            throw new UnauthorizedActionException("Access Denied: Only Administrators and Program Managers can create training programs.");
         }
 
-        if (requestDto.getStartDate() != null && requestDto.getEndDate() != null && requestDto.getStartDate().isAfter(requestDto.getEndDate())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Program start date cannot be later than the end date.");
+        if (requestDto.getManagerId() == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Manager ID cannot be null when creating a program.");
+        }
+        validateDates(requestDto);
+
+        // 2. Cross-Microservice Validation with Fault Tolerance
+        boolean managerExists;
+        try {
+            managerExists = userClient.checkUserExists(requestDto.getManagerId());
+        } catch (FeignException e) {
+            log.error("Failed to connect to User Service for manager ID {}: {}", requestDto.getManagerId(), e.getMessage());
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "User verification service is currently offline. Please try again later.");
+        }
+
+        if (!managerExists) {
+            throw new ResourceNotFoundException("Manager ID " + requestDto.getManagerId() + " does not exist in the User System.");
         }
 
         TrainingProgram newProgram = modelMapper.map(requestDto, TrainingProgram.class);
@@ -48,6 +63,52 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         TrainingProgram savedProgram = programRepository.save(newProgram);
 
         return modelMapper.map(savedProgram, TrainingProgramResponseDTO.class);
+    }
+
+    @Override
+    public TrainingProgramResponseDTO updateProgram(Long programId, TrainingProgramRequestDTO requestDto, Long requesterId, String role) {
+        // 1. ROLE-BASED ACCESS CONTROL
+        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("PROGRAMMANAGER"))) {
+            throw new UnauthorizedActionException("Access Denied: Only Administrators and Program Managers can modify training programs.");
+        }
+
+        TrainingProgram existingProgram = programRepository.findById(programId)
+                .orElseThrow(() -> new ResourceNotFoundException("Training Program", "ID", programId));
+
+        // 2. OWNERSHIP VERIFICATION (Admins bypass this)
+        boolean isAdmin = role.equalsIgnoreCase("ADMIN");
+        if (!isAdmin && !existingProgram.getManagerId().equals(requesterId)) {
+            throw new UnauthorizedActionException("Access Denied: You are not authorized to edit a training program you did not create.");
+        }
+
+        validateDates(requestDto);
+
+        existingProgram.setTitle(requestDto.getTitle());
+        existingProgram.setDescription(requestDto.getDescription());
+        existingProgram.setStartDate(requestDto.getStartDate());
+        existingProgram.setEndDate(requestDto.getEndDate());
+
+        TrainingProgram updatedProgram = programRepository.save(existingProgram);
+        return modelMapper.map(updatedProgram, TrainingProgramResponseDTO.class);
+    }
+
+    @Override
+    public void deleteProgram(Long programId, Long requesterId, String role) {
+        // 1. ROLE-BASED ACCESS CONTROL
+        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("PROGRAMMANAGER"))) {
+            throw new UnauthorizedActionException("Access Denied: Only Administrators and Program Managers can delete training programs.");
+        }
+
+        TrainingProgram existingProgram = programRepository.findById(programId)
+                .orElseThrow(() -> new ResourceNotFoundException("Training Program", "ID", programId));
+
+        // 2. OWNERSHIP VERIFICATION (Admins bypass this)
+        boolean isAdmin = role.equalsIgnoreCase("ADMIN");
+        if (!isAdmin && !existingProgram.getManagerId().equals(requesterId)) {
+            throw new UnauthorizedActionException("Access Denied: You are not authorized to delete a training program you did not create.");
+        }
+
+        programRepository.delete(existingProgram);
     }
 
     @Override
@@ -66,42 +127,6 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
     }
 
     @Override
-    public TrainingProgramResponseDTO updateProgram(Long programId, TrainingProgramRequestDTO requestDto, Long requesterId, boolean isAdmin) {
-        TrainingProgram existingProgram = programRepository.findById(programId)
-                .orElseThrow(() -> new ResourceNotFoundException("Training Program", "ID", programId));
-
-        // OWNERSHIP VERIFICATION
-        if (!isAdmin && !existingProgram.getManagerId().equals(requesterId)) {
-            throw new UnauthorizedActionException("You are not authorized to edit a training program you did not create.");
-        }
-
-        if (requestDto.getStartDate() != null && requestDto.getEndDate() != null && requestDto.getStartDate().isAfter(requestDto.getEndDate())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Program start date cannot be later than the end date.");
-        }
-
-        existingProgram.setTitle(requestDto.getTitle());
-        existingProgram.setDescription(requestDto.getDescription());
-        existingProgram.setStartDate(requestDto.getStartDate());
-        existingProgram.setEndDate(requestDto.getEndDate());
-
-        TrainingProgram updatedProgram = programRepository.save(existingProgram);
-        return modelMapper.map(updatedProgram, TrainingProgramResponseDTO.class);
-    }
-
-    @Override
-    public void deleteProgram(Long programId, Long requesterId, boolean isAdmin) {
-        TrainingProgram existingProgram = programRepository.findById(programId)
-                .orElseThrow(() -> new ResourceNotFoundException("Training Program", "ID", programId));
-
-        // OWNERSHIP VERIFICATION
-        if (!isAdmin && !existingProgram.getManagerId().equals(requesterId)) {
-            throw new UnauthorizedActionException("You are not authorized to delete a training program you did not create.");
-        }
-
-        programRepository.delete(existingProgram);
-    }
-
-    @Override
     public boolean checkProgramExists(Long programId) {
         return programRepository.existsById(programId);
     }
@@ -111,5 +136,11 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         return programRepository.findByStatus(status).stream()
                 .map(program -> modelMapper.map(program, TrainingProgramResponseDTO.class))
                 .collect(Collectors.toList());
+    }
+
+    private void validateDates(TrainingProgramRequestDTO requestDto) {
+        if (requestDto.getStartDate() != null && requestDto.getEndDate() != null && requestDto.getStartDate().isAfter(requestDto.getEndDate())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Program start date cannot be later than the end date.");
+        }
     }
 }

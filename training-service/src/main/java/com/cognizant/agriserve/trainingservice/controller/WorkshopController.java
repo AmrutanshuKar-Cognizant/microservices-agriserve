@@ -30,10 +30,8 @@ public class WorkshopController {
             @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
             @Valid @RequestBody WorkshopRequestDTO requestDto) {
 
-        boolean isAdmin = role.equalsIgnoreCase("Admin");
-
-        log.info("Manager [ID={}] scheduling a new workshop for Program ID: {}", requesterId, requestDto.getProgramId());
-        WorkshopResponseDTO scheduledWorkshop = workshopService.scheduleWorkshop(requestDto, requesterId, isAdmin);
+        log.info("Manager [ID={}] with role [{}] scheduling a new workshop for Program ID: {}", requesterId, role, requestDto.getProgramId());
+        WorkshopResponseDTO scheduledWorkshop = workshopService.scheduleWorkshop(requestDto, requesterId, role);
         return new ResponseEntity<>(scheduledWorkshop, HttpStatus.CREATED);
     }
 
@@ -45,10 +43,8 @@ public class WorkshopController {
             @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
             @Valid @RequestBody WorkshopRequestDTO requestDto) {
 
-        boolean isAdmin = role.equalsIgnoreCase("Admin");
-
-        log.info("Manager [ID={}] requesting to edit Workshop ID: {}", requesterId, workshopId);
-        return ResponseEntity.ok(workshopService.updateWorkshop(workshopId, requestDto, requesterId, isAdmin));
+        log.info("Manager [ID={}] with role [{}] requesting to edit Workshop ID: {}", requesterId, role, workshopId);
+        return ResponseEntity.ok(workshopService.updateWorkshop(workshopId, requestDto, requesterId, role));
     }
 
     @PatchMapping("/{workshopId}/status")
@@ -59,11 +55,8 @@ public class WorkshopController {
             @RequestHeader("X-Logged-In-User-Id") Long requesterId,
             @RequestHeader(value = "X-User-Role", defaultValue = "") String role) {
 
-        // The requester here could be the Manager owning the program OR the Officer assigned to the class
-        boolean isAdmin = role.equalsIgnoreCase("Admin");
-
-        log.info("User [ID={}] updating Workshop ID: {} to status: {}", requesterId, workshopId, status);
-        return ResponseEntity.ok(workshopService.updateWorkshopStatus(workshopId, status, requesterId, isAdmin));
+        log.info("User [ID={}] with role [{}] updating Workshop ID: {} to status: {}", requesterId, role, workshopId, status);
+        return ResponseEntity.ok(workshopService.updateWorkshopStatus(workshopId, status, requesterId, role));
     }
 
     @DeleteMapping("/{workshopId}")
@@ -73,10 +66,8 @@ public class WorkshopController {
             @RequestHeader("X-Logged-In-User-Id") Long requesterId,
             @RequestHeader(value = "X-User-Role", defaultValue = "") String role) {
 
-        boolean isAdmin = role.equalsIgnoreCase("Admin");
-
-        log.info("Manager [ID={}] requesting to delete Workshop ID: {}", requesterId, workshopId);
-        workshopService.deleteWorkshop(workshopId, requesterId, isAdmin);
+        log.info("Manager [ID={}] with role [{}] requesting to delete Workshop ID: {}", requesterId, role, workshopId);
+        workshopService.deleteWorkshop(workshopId, requesterId, role);
         return ResponseEntity.noContent().build();
     }
 

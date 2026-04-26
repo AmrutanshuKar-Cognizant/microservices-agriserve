@@ -28,12 +28,15 @@ public class ParticipationController {
     @PreAuthorize("hasRole('Farmer')")
     public ResponseEntity<ParticipationResponseDTO> registerForWorkshop(
             @RequestHeader("X-Logged-In-User-Id") Long farmerId,
+            @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
             @Valid @RequestBody ParticipationRequestDTO requestDto) {
 
         requestDto.setFarmerId(farmerId);
 
         log.info("Farmer [ID={}] registering for Workshop ID: {}", farmerId, requestDto.getWorkshopId());
-        return new ResponseEntity<>(participationService.registerForWorkshop(requestDto), HttpStatus.CREATED);
+
+        // Pass the role to the service
+        return new ResponseEntity<>(participationService.registerForWorkshop(requestDto, role), HttpStatus.CREATED);
     }
 
     @GetMapping("/workshop/{workshopId}")
@@ -59,10 +62,9 @@ public class ParticipationController {
             @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
             @Valid @RequestBody AttendanceUpdateRequestDTO requestDto) {
 
-        boolean isAdmin = role.equalsIgnoreCase("Admin");
+        log.info("User [ID={}] with role [{}] updating attendance for Participation ID: {}", officerId, role, requestDto.getParticipationId());
 
-        log.info("Officer [ID={}] (Admin: {}) updating attendance for Participation ID: {}", officerId, isAdmin, requestDto.getParticipationId());
-
-        return ResponseEntity.ok(participationService.updateAttendance(requestDto, officerId, isAdmin));
+        // Pass the role directly as a String
+        return ResponseEntity.ok(participationService.updateAttendance(requestDto, officerId, role));
     }
 }

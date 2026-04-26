@@ -25,55 +25,58 @@ public class TrainingProgramController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin')")
+    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin', 'ExtensionOfficer')")
     public ResponseEntity<TrainingProgramResponseDTO> createProgram(
             @RequestHeader("X-Logged-In-User-Id") Long managerId,
+            @RequestHeader("X-User-Role") String role,
             @Valid @RequestBody TrainingProgramRequestDTO requestDto) {
 
         requestDto.setManagerId(managerId);
 
-        log.info("ProgramManager [ID={}] creating Training Program: {}", managerId, requestDto.getTitle());
-        TrainingProgramResponseDTO savedProgram = programService.createProgram(requestDto);
+        log.info("User [ID={}] with Role [{}] creating Training Program: {}", managerId, role, requestDto.getTitle());
+
+        // Pass the role to the service
+        TrainingProgramResponseDTO savedProgram = programService.createProgram(requestDto, role);
         return new ResponseEntity<>(savedProgram, HttpStatus.CREATED);
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ProgramManager', 'Admin', 'Farmer', 'ExtensionOfficer')")
+    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin', 'Farmer', 'ExtensionOfficer')")
     public ResponseEntity<List<TrainingProgramResponseDTO>> getAllPrograms() {
         return ResponseEntity.ok(programService.getAllPrograms());
     }
 
     @GetMapping("/{programId}")
-    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin')")
+    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin', 'ExtensionOfficer')")
     public ResponseEntity<TrainingProgramResponseDTO> getProgramById(@PathVariable Long programId) {
         return ResponseEntity.ok(programService.getProgramById(programId));
     }
 
     @PutMapping("/{programId}")
-    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin')")
+    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin', 'ExtensionOfficer')")
     public ResponseEntity<TrainingProgramResponseDTO> updateProgram(
             @PathVariable Long programId,
             @RequestHeader("X-Logged-In-User-Id") Long requesterId,
             @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
             @Valid @RequestBody TrainingProgramRequestDTO requestDto) {
 
-        boolean isAdmin = role.equalsIgnoreCase("Admin");
+        log.info("User {} (Role: {}) is updating Training Program ID: {}", requesterId, role, programId);
 
-        log.info("User {} (Admin: {}) is updating Training Program ID: {}", requesterId, isAdmin, programId);
-        return ResponseEntity.ok(programService.updateProgram(programId, requestDto, requesterId, isAdmin));
+        // Pass the role directly as a String instead of calculating boolean isAdmin
+        return ResponseEntity.ok(programService.updateProgram(programId, requestDto, requesterId, role));
     }
 
     @DeleteMapping("/{programId}")
-    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin')")
+    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin', 'ExtensionOfficer')")
     public ResponseEntity<Void> deleteProgram(
             @PathVariable Long programId,
             @RequestHeader("X-Logged-In-User-Id") Long requesterId,
             @RequestHeader(value = "X-User-Role", defaultValue = "") String role) {
 
-        boolean isAdmin = role.equalsIgnoreCase("Admin");
+        log.info("User {} (Role: {}) is deleting Training Program ID: {}", requesterId, role, programId);
 
-        log.info("User {} (Admin: {}) is deleting Training Program ID: {}", requesterId, isAdmin, programId);
-        programService.deleteProgram(programId, requesterId, isAdmin);
+        // Pass the role directly as a String
+        programService.deleteProgram(programId, requesterId, role);
         return ResponseEntity.noContent().build();
     }
 
@@ -86,7 +89,7 @@ public class TrainingProgramController {
     }
 
     @GetMapping("/completed")
-    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin', 'ComplianceOfficer', 'SERVICE')")
+    @PreAuthorize("hasAnyRole('ProgramManager', 'Admin', 'ComplianceOfficer', 'SERVICE', 'ExtensionOfficer')")
     public ResponseEntity<List<TrainingProgramResponseDTO>> getCompletedPrograms() {
         return ResponseEntity.ok(programService.getProgramsByStatus("Completed"));
     }

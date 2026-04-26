@@ -7,12 +7,15 @@ import com.cognizant.agriserve.trainingservice.dto.request.WorkshopRequestDTO;
 import com.cognizant.agriserve.trainingservice.dto.response.WorkshopResponseDTO;
 import com.cognizant.agriserve.trainingservice.entity.TrainingProgram;
 import com.cognizant.agriserve.trainingservice.entity.Workshop;
+import com.cognizant.agriserve.trainingservice.exception.ApiException;
 import com.cognizant.agriserve.trainingservice.exception.ResourceNotFoundException;
-import com.cognizant.agriserve.trainingservice.exception.UnauthorizedActionException; // <-- Added Import
+import com.cognizant.agriserve.trainingservice.exception.UnauthorizedActionException;
 import com.cognizant.agriserve.trainingservice.service.WorkshopService;
+import feign.FeignException; // <-- Added for fault tolerance
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,18 +45,23 @@ public class WorkshopServiceImpl implements WorkshopService {
     }
 
     @Override
-    public WorkshopResponseDTO scheduleWorkshop(WorkshopRequestDTO requestDto, Long requesterId, boolean isAdmin) {
+    public WorkshopResponseDTO scheduleWorkshop(WorkshopRequestDTO requestDto, Long requesterId, String role) {
+        // 1. RBAC Check
+        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("PROGRAMMANAGER"))) {
+            throw new UnauthorizedActionException("Access Denied: Only Administrators and Program Managers can schedule workshops.");
+        }
+
         TrainingProgram program = programRepository.findById(requestDto.getProgramId())
                 .orElseThrow(() -> new ResourceNotFoundException("Training Program", "ID", requestDto.getProgramId()));
 
-        // OWNERSHIP VERIFICATION: You can only schedule a workshop if you own the parent program
+        // 2. Ownership Check
+        boolean isAdmin = role.equalsIgnoreCase("ADMIN");
         if (!isAdmin && !program.getManagerId().equals(requesterId)) {
-            throw new UnauthorizedActionException("You are not authorized to schedule a workshop for a program you did not create.");
+            throw new UnauthorizedActionException("Access Denied: You cannot schedule a workshop for a program you did not create.");
         }
 
-        if (!userClient.checkUserExists(requestDto.getOfficerId())) {
-            throw new ResourceNotFoundException("Officer ID " + requestDto.getOfficerId() + " not found in User System.");
-        }
+        // 3. Network-Resilient Cross-Service Check
+        verifyOfficerExists(requestDto.getOfficerId());
 
         Workshop newWorkshop = modelMapper.map(requestDto, Workshop.class);
         newWorkshop.setTrainingProgram(program);
@@ -71,16 +79,22 @@ public class WorkshopServiceImpl implements WorkshopService {
     }
 
     @Override
-    public WorkshopResponseDTO updateWorkshopStatus(Long workshopId, String status, Long requesterId, boolean isAdmin) {
+    public WorkshopResponseDTO updateWorkshopStatus(Long workshopId, String status, Long requesterId, String role) {
+        // 1. RBAC Check (Extension Officers included here)
+        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("PROGRAMMANAGER") && !role.equalsIgnoreCase("EXTENSIONOFFICER"))) {
+            throw new UnauthorizedActionException("Access Denied: You do not have permission to update workshop statuses.");
+        }
+
         Workshop existingWorkshop = workshopRepository.findById(workshopId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workshop", "ID", workshopId));
 
-        // OWNERSHIP VERIFICATION: Either the Program Manager OR the assigned Extension Officer can update the status
+        // 2. Ownership / Assignment Check
+        boolean isAdmin = role.equalsIgnoreCase("ADMIN");
         boolean isOwner = existingWorkshop.getTrainingProgram().getManagerId().equals(requesterId);
         boolean isAssignedOfficer = existingWorkshop.getOfficerId().equals(requesterId);
 
         if (!isAdmin && !isOwner && !isAssignedOfficer) {
-            throw new UnauthorizedActionException("Only the program manager or the assigned extension officer can update the workshop status.");
+            throw new UnauthorizedActionException("Access Denied: Only the program manager or the assigned extension officer can update this workshop status.");
         }
 
         existingWorkshop.setStatus(status);
@@ -89,19 +103,24 @@ public class WorkshopServiceImpl implements WorkshopService {
     }
 
     @Override
-    public WorkshopResponseDTO updateWorkshop(Long workshopId, WorkshopRequestDTO requestDto, Long requesterId, boolean isAdmin) {
+    public WorkshopResponseDTO updateWorkshop(Long workshopId, WorkshopRequestDTO requestDto, Long requesterId, String role) {
+        // 1. RBAC Check
+        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("PROGRAMMANAGER"))) {
+            throw new UnauthorizedActionException("Access Denied: Only Administrators and Program Managers can edit workshops.");
+        }
+
         Workshop existingWorkshop = workshopRepository.findById(workshopId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workshop", "ID", workshopId));
 
-        // OWNERSHIP VERIFICATION
+        // 2. Ownership Check
+        boolean isAdmin = role.equalsIgnoreCase("ADMIN");
         if (!isAdmin && !existingWorkshop.getTrainingProgram().getManagerId().equals(requesterId)) {
-            throw new UnauthorizedActionException("You are not authorized to edit a workshop for a program you did not create.");
+            throw new UnauthorizedActionException("Access Denied: You cannot edit a workshop for a program you did not create.");
         }
 
+        // 3. Network-Resilient Check (Only ping User Service if the officer ID actually changed)
         if (!existingWorkshop.getOfficerId().equals(requestDto.getOfficerId())) {
-            if (!userClient.checkUserExists(requestDto.getOfficerId())) {
-                throw new ResourceNotFoundException("New Officer ID not found in User System.");
-            }
+            verifyOfficerExists(requestDto.getOfficerId());
         }
 
         existingWorkshop.setLocation(requestDto.getLocation());
@@ -113,16 +132,38 @@ public class WorkshopServiceImpl implements WorkshopService {
     }
 
     @Override
-    public void deleteWorkshop(Long workshopId, Long requesterId, boolean isAdmin) {
+    public void deleteWorkshop(Long workshopId, Long requesterId, String role) {
+        // 1. RBAC Check
+        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("PROGRAMMANAGER"))) {
+            throw new UnauthorizedActionException("Access Denied: Only Administrators and Program Managers can delete workshops.");
+        }
+
         Workshop existingWorkshop = workshopRepository.findById(workshopId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workshop", "ID", workshopId));
 
-        // OWNERSHIP VERIFICATION
+        // 2. Ownership Check
+        boolean isAdmin = role.equalsIgnoreCase("ADMIN");
         if (!isAdmin && !existingWorkshop.getTrainingProgram().getManagerId().equals(requesterId)) {
-            throw new UnauthorizedActionException("You are not authorized to delete a workshop for a program you did not create.");
+            throw new UnauthorizedActionException("Access Denied: You cannot delete a workshop for a program you did not create.");
         }
 
         workshopRepository.delete(existingWorkshop);
+    }
+
+    // --- Helper Methods ---
+
+    private void verifyOfficerExists(Long officerId) {
+        if (officerId == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Officer ID cannot be null.");
+        }
+        try {
+            if (!userClient.checkUserExists(officerId)) {
+                throw new ResourceNotFoundException("Officer ID " + officerId + " not found in User System.");
+            }
+        } catch (FeignException e) {
+            log.error("Failed to connect to User Service for officer ID {}: {}", officerId, e.getMessage());
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "User verification service is currently offline. Please try again later.");
+        }
     }
 
     private WorkshopResponseDTO convertToDto(Workshop workshop) {

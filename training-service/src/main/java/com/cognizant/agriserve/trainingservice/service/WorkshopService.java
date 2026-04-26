@@ -11,16 +11,16 @@ public interface WorkshopService {
     List<WorkshopResponseDTO> getActiveWorkshopsForFarmers();
 
     // SECURITY: Added requesterId and isAdmin
-    WorkshopResponseDTO scheduleWorkshop(WorkshopRequestDTO requestDto, Long requesterId, boolean isAdmin);
+    WorkshopResponseDTO scheduleWorkshop(WorkshopRequestDTO requestDto, Long requesterId, String role);
 
     List<WorkshopResponseDTO> getWorkshopsByOfficer(Long officerId);
 
     // SECURITY: Added requesterId and isAdmin
-    WorkshopResponseDTO updateWorkshopStatus(Long workshopId, String status, Long requesterId, boolean isAdmin);
+    WorkshopResponseDTO updateWorkshopStatus(Long workshopId, String status, Long requesterId, String role);
 
     // SECURITY: Added requesterId and isAdmin
-    WorkshopResponseDTO updateWorkshop(Long workshopId, WorkshopRequestDTO requestDto, Long requesterId, boolean isAdmin);
+    WorkshopResponseDTO updateWorkshop(Long workshopId, WorkshopRequestDTO requestDto, Long requesterId, String role);
 
     // SECURITY: Added requesterId and isAdmin
-    void deleteWorkshop(Long workshopId, Long requesterId, boolean isAdmin);
+    void deleteWorkshop(Long workshopId, Long requesterId, String role);
 }

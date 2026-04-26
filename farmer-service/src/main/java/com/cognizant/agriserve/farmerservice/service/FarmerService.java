@@ -12,9 +12,9 @@ public interface FarmerService {
 
     FarmerResponseDTO updateFarmerProfile(Long userId, FarmerUpdateRequestDTO updateDto);
 
-    List<FarmerResponseDTO> getAllFarmers();
+    List<FarmerResponseDTO> getAllFarmers(String role);
 
-    FarmerResponseDTO getFarmerById(Long farmerId);
+    FarmerResponseDTO getFarmerById(Long farmerId, String role);
 
     Void registerfarmer(RegisterFarmerDTO registerrequestdto);
 }

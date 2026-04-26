@@ -10,7 +10,7 @@
 	</parent>
 
 	<groupId>com.cognizant.agriserve</groupId>
-	<artifactId>FeedbackandSatisfaction.Service</artifactId>
+	<artifactId>feedbackandsatisfaction-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Feedback and Satisfaction Service</name>
 	<description>Microservice for handling user sentiment and metrics</description>

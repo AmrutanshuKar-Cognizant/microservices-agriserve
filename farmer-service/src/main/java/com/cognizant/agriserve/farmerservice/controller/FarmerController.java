@@ -47,20 +47,21 @@ public class FarmerController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ExtensionOfficer', 'Admin')")
-    public ResponseEntity<List<FarmerResponseDTO>> getAllFarmers() {
+    @PreAuthorize("hasAnyRole('ExtensionOfficer', 'Admin')")
+    public ResponseEntity<List<FarmerResponseDTO>> getAllFarmers(@RequestHeader("X-User-Role") String role) {
 
         log.info("API Request: Fetching all registered farmers for administrative review");
-        List<FarmerResponseDTO> farmers = farmerService.getAllFarmers();
+        List<FarmerResponseDTO> farmers = farmerService.getAllFarmers(role);
 
         return ResponseEntity.ok(farmers);
     }
 
     @GetMapping("/{farmerId}")
-    @PreAuthorize("hasRole('ExtensionOfficer', 'Admin')")
-    public ResponseEntity<FarmerResponseDTO> getFarmerById(@PathVariable Long farmerId) {
+    @PreAuthorize("hasAnyRole('ExtensionOfficer', 'Admin')")
+    public ResponseEntity<FarmerResponseDTO> getFarmerById(@PathVariable Long farmerId,
+                                                           @RequestHeader("X-User-Role") String role) {
         log.info("API Request: Fetching profile for Farmer ID: {}", farmerId);
-        return ResponseEntity.ok(farmerService.getFarmerById(farmerId));
+        return ResponseEntity.ok(farmerService.getFarmerById(farmerId, role));
     }
 
     @PostMapping("/register")

@@ -7,9 +7,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="apigateway" />
-        <module name="FeedbackandSatisfaction.Service" />
-        <module name="serviceregistry" />
+        <module name="api-gateway" />
+        <module name="feedbackandsatisfaction-service" />
+        <module name="service-registry" />
       </profile>
       <profile name="Annotation profile for compliance-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -18,7 +18,7 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
-        <module name="compliance-service" />
+        <module name="farmer-service" />
       </profile>
       <profile name="Annotation profile for compliance-service (1)" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -27,7 +27,7 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
-        <module name="compliance-service (1)" />
+        <module name="compliance-service" />
       </profile>
       <profile name="Annotation profile for microservices" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -36,11 +36,20 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
         </processorPath>
-        <module name="trainingservice" />
-        <module name="configserver" />
+        <module name="config-server" />
+        <module name="auth-service" />
         <module name="user-service" />
+        <module name="training-service" />
+      </profile>
+      <profile name="Annotation profile for advisory-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
+        </processorPath>
         <module name="advisory-service" />
-        <module name="Authservice" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -50,17 +59,17 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="Authservice" options="-parameters" />
-      <module name="FeedbackandSatisfaction.Service" options="-parameters" />
       <module name="advisory-service" options="-parameters" />
+      <module name="api-gateway" options="-parameters" />
       <module name="apiGateway (1) (com.cognizant)" options="-parameters" />
-      <module name="apigateway" options="-parameters" />
       <module name="apigateway (1)" options="-parameters" />
+      <module name="auth-service" options="-parameters" />
       <module name="compliance-service" options="-parameters" />
-      <module name="compliance-service (1)" options="-parameters" />
-      <module name="configserver" options="-parameters" />
-      <module name="serviceregistry" options="-parameters" />
-      <module name="trainingservice" options="-parameters" />
+      <module name="config-server" options="-parameters" />
+      <module name="farmer-service" options="-parameters" />
+      <module name="feedbackandsatisfaction-service" options="-parameters" />
+      <module name="service-registry" options="-parameters" />
+      <module name="training-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>
   </component>

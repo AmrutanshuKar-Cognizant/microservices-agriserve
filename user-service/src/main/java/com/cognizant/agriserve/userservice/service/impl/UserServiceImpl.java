@@ -122,16 +122,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public UserDTO findbyusername(String Username){
-        log.info("Fetching user credentials for: {}", Username);
-        User user = userRepository.findByEmail(Username)
-                .orElseThrow(() -> new RuntimeException("Error: User not found"));
+    public UserDTO findbyusername(String username){
+        log.info("Fetching user credentials for: {}", username);
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("User not found with email: '%s'", username)));
 
         return UserDTO.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
                 .password(user.getPassword())
-                .role(user.getRole().name()) // UPDATED: Dynamically fetch the role!
+                .role(user.getRole().name())
                 .build();
     }
 
