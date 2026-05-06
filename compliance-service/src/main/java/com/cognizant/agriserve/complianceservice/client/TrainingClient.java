@@ -4,7 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "TRAININGSERVICE")
+@FeignClient(name = "TRAINING-SERVICE")
 public interface TrainingClient {
 
     @GetMapping("/api/programs/{programId}/exists")

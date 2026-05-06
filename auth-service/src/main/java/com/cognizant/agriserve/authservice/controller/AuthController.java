@@ -4,6 +4,7 @@ import com.cognizant.agriserve.authservice.dto.LoginRequestDTO;
 import com.cognizant.agriserve.authservice.dto.LoginResponseDTO;
 import com.cognizant.agriserve.authservice.dto.RegisterRequestDTO;
 import com.cognizant.agriserve.authservice.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,13 +20,13 @@ public class AuthController {
     private final AuthService authservice;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody RegisterRequestDTO registerRequestDTO) {
+    public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authservice.register(registerRequestDTO));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO LoginRequestDTO) {
-        log.info("Login request received for: {}", LoginRequestDTO.getEmail());
-        return ResponseEntity.status(HttpStatus.OK).body(authservice.login(LoginRequestDTO));
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
+        log.info("Login request received for: {}", loginRequestDTO.getEmail());
+        return ResponseEntity.status(HttpStatus.OK).body(authservice.login(loginRequestDTO));
     }
 }

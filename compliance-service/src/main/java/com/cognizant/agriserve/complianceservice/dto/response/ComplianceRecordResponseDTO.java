@@ -16,8 +16,6 @@ public class ComplianceRecordResponseDTO {
 
     private Long entityId;
 
-//    private String entityName;
-
     private ComplianceType type;
 
     private Long officerId;

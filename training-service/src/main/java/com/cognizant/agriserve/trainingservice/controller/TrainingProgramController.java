@@ -93,4 +93,11 @@ public class TrainingProgramController {
     public ResponseEntity<List<TrainingProgramResponseDTO>> getCompletedPrograms() {
         return ResponseEntity.ok(programService.getProgramsByStatus("Completed"));
     }
+
+    @GetMapping("/feigncall/{id}")
+    @PreAuthorize("hasRole('SERVICE')")
+    public TrainingProgramResponseDTO getProgramForFeign(@PathVariable("id") Long id) {
+        log.info("Internal Feign call received for Training Program ID: {}", id);
+        return programService.getProgramForFeign(id);
+    }
 }

@@ -73,7 +73,8 @@ public class FarmerServiceImpl implements FarmerService {
         log.debug("Fetching profile by internal Farmer ID: {}", farmerId);
 
         // 1. Check Role Authorization
-        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("EXTENSIONOFFICER"))) {
+        if (role == null || (!role.equalsIgnoreCase("ADMIN") && !role.equalsIgnoreCase("EXTENSIONOFFICER")
+                && !role.toUpperCase().contains("SERVICE"))) {
             throw new UnauthorizedActionException("Access Denied: You do not have permission to view specific farmer profiles.");
         }
 
@@ -97,6 +98,21 @@ public class FarmerServiceImpl implements FarmerService {
         farmer.setUserId(registerrequestdto.getUserId());
         farmerRepository.save(farmer);
         return null;
+    }
+
+    @Override
+    public FarmerResponseDTO getFarmerForFeign(Long id) {
+        log.debug("Fetching Farmer data for internal microservice. ID: {}", id);
+
+        // 1. Fetch the Entity from the database
+        Farmer farmer = farmerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Farmer not found with ID: " + id));
+
+        // 2. Map Entity to DTO (You can use ModelMapper here if you prefer!)
+        FarmerResponseDTO farmerDTO = new FarmerResponseDTO();
+
+
+        return mapToResponse(farmer);
     }
 
 

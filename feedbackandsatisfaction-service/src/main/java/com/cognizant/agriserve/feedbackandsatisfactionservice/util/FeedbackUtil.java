@@ -3,7 +3,7 @@ package com.cognizant.agriserve.feedbackandsatisfactionservice.util;
 import com.cognizant.agriserve.feedbackandsatisfactionservice.dto.FeedbackRequestDTO;
 import com.cognizant.agriserve.feedbackandsatisfactionservice.entity.Feedback;
 
-public class Feedbackutil {
+public class FeedbackUtil {
 
 public static  Feedback tofeedback(FeedbackRequestDTO dto){
     Feedback ft=new Feedback();

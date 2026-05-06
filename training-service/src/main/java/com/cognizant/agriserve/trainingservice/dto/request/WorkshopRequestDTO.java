@@ -23,4 +23,5 @@ public class WorkshopRequestDTO {
 
     @NotNull(message = "Workshop date and time are required")
     private LocalDateTime date;
+
 }

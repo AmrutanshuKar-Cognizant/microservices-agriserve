@@ -4,7 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "ADVISORYSERVICE")
+@FeignClient(name = "ADVISORY-SERVICE")
 public interface AdvisoryClient {
 
     @GetMapping("/api/advisory-sessions/{sessionId}/exists")

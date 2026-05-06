@@ -55,14 +55,24 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
             log.info("Token validated for user: {} with role: {}", username, role);
 
-            // 4. Forward via headers to downstream microservices
+            // 4. Securely forward via headers to downstream microservices
             ServerWebExchange mutatedExchange = exchange.mutate()
-                    .request(builder -> builder
-                            .header("X-Logged-In-User-Id", String.valueOf(userId))
-                            .header("X-User-Name", username)
-                            .header("X-User-Role", role)
-                            .build())
+                    .request(builder -> {
+                        // CRITICAL SECURITY FIX: Strip any existing headers sent by a malicious client
+                        builder.headers(headers -> {
+                            headers.remove("X-Logged-In-User-Id");
+                            headers.remove("X-User-Name");
+                            headers.remove("X-User-Role");
+                        });
+
+                        // Inject the trusted, verified values from the JWT
+                        builder.header("X-Logged-In-User-Id", String.valueOf(userId))
+                                .header("X-User-Name", username)
+                                .header("X-User-Role", role);
+                    })
                     .build();
+
+            log.info("GATEWAY DEBUG: Forwarding request with User ID: {}", userId);
 
             return chain.filter(mutatedExchange);
 

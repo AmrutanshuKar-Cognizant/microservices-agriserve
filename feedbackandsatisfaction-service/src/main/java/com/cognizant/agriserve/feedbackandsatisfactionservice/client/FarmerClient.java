@@ -5,9 +5,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name="FARMER_SESSION")
-public interface FarmerSessionClient {
+@FeignClient(name="FARMER-SERVICE")
+public interface FarmerClient {
 
-    @GetMapping("/api/Farmer/{id}")
-    FarmerDTO getbyfarmerid(@PathVariable Long id);
+    @GetMapping("/api/farmers/feigncall/{id}")
+    FarmerDTO getFarmer(@PathVariable Long id);
 }

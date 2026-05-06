@@ -51,3 +51,4 @@ public class FarmerDocument {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 }
+

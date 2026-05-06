@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface FarmerDocumentService {
 
-    FarmerDocumentResponseDTO uploadDocument(FarmerDocumentUploadRequestDTO requestDto);
+    FarmerDocumentResponseDTO uploadDocument(Long userId, FarmerDocumentUploadRequestDTO requestDto);
 
     List<FarmerDocumentResponseDTO> getDocumentsByUserId(Long userId);
 

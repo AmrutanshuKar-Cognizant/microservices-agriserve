@@ -17,4 +17,6 @@ public interface FarmerService {
     FarmerResponseDTO getFarmerById(Long farmerId, String role);
 
     Void registerfarmer(RegisterFarmerDTO registerrequestdto);
+
+    FarmerResponseDTO getFarmerForFeign(Long id);
 }

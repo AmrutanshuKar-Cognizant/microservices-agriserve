@@ -69,4 +69,14 @@ public class AdvisorySessionController {
     public ResponseEntity<List<Map<String, Object>>> getUsageReport() {
         return ResponseEntity.ok(sessionService.getUsageAnalytics());
     }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('SERVICE')")
+    public ResponseEntity<AdvisorySessionResponseDTO> getAdvisoryById(@PathVariable Long id) {
+        // Fetch the data from the service layer
+        AdvisorySessionResponseDTO responseDTO = sessionService.getAdvisoryById(id);
+
+        // Return 200 OK with the body
+        return ResponseEntity.ok(responseDTO);
+    }
 }

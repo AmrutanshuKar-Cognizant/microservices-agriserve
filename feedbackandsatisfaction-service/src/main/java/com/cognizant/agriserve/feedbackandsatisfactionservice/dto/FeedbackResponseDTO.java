@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class FeedbackResponseDTO {
-    private Long FeedbackId;
-    private String FarmerName;
+    private Long feedbackId;
+    private String farmerName;
     private String programName;
     private int rating;
-    private String Comments;
+    private String comments;
 }

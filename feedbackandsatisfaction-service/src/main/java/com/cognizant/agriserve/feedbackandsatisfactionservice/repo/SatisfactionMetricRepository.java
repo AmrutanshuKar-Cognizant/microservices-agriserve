@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface Satisfactionmetricrepo extends JpaRepository<SatisfactionMetric,Long> {
-    boolean existsByTrainingProgram_ProgramId(Long programId);
+public interface SatisfactionMetricRepository extends JpaRepository<SatisfactionMetric,Long> {
+    boolean existsByTrainingProgramId(Long programId);
 }

@@ -1,7 +1,9 @@
 package com.cognizant.agriserve.trainingservice.controller;
 
+import com.cognizant.agriserve.trainingservice.client.FarmerClient;
 import com.cognizant.agriserve.trainingservice.dto.request.AttendanceUpdateRequestDTO;
 import com.cognizant.agriserve.trainingservice.dto.request.ParticipationRequestDTO;
+import com.cognizant.agriserve.trainingservice.dto.response.FarmerResponseDTO;
 import com.cognizant.agriserve.trainingservice.dto.response.ParticipationResponseDTO;
 import com.cognizant.agriserve.trainingservice.service.ParticipationService;
 import jakarta.validation.Valid;
@@ -10,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @Slf4j
@@ -19,24 +20,35 @@ import java.util.List;
 public class ParticipationController {
 
     private final ParticipationService participationService;
+    private final FarmerClient farmerClient;
 
-    public ParticipationController(ParticipationService participationService) {
+    public ParticipationController(ParticipationService participationService, FarmerClient farmerClient) {
         this.participationService = participationService;
+        this.farmerClient =  farmerClient;
     }
 
     @PostMapping("/register")
     @PreAuthorize("hasRole('Farmer')")
     public ResponseEntity<ParticipationResponseDTO> registerForWorkshop(
-            @RequestHeader("X-Logged-In-User-Id") Long farmerId,
+            @RequestHeader("X-Logged-In-User-Id") Long userId,
             @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
             @Valid @RequestBody ParticipationRequestDTO requestDto) {
 
-        requestDto.setFarmerId(farmerId);
+        // 1. Fetch Farmer details from farmer-service using the userId
+        FarmerResponseDTO farmer = farmerClient.getFarmerByUserId(userId);
 
-        log.info("Farmer [ID={}] registering for Workshop ID: {}", farmerId, requestDto.getWorkshopId());
+        // 2. Extract farmerId and update the DTO
+        Long fetchedFarmerId = farmer.getFarmerId();
+        requestDto.setFarmerId(fetchedFarmerId);
 
-        // Pass the role to the service
-        return new ResponseEntity<>(participationService.registerForWorkshop(requestDto, role), HttpStatus.CREATED);
+        log.info("User [ID={}] identified as Farmer [ID={}]. Registering for Workshop ID: {}",
+                userId, fetchedFarmerId, requestDto.getWorkshopId());
+
+        // 3. Pass to service
+        return new ResponseEntity<>(
+                participationService.registerForWorkshop(requestDto, role),
+                HttpStatus.CREATED
+        );
     }
 
     @GetMapping("/workshop/{workshopId}")

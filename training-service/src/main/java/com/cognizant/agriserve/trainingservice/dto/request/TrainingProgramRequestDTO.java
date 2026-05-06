@@ -26,6 +26,8 @@ public class TrainingProgramRequestDTO {
     @NotNull(message = "End date is mandatory")
     private LocalDate endDate;
 
+    private String status;
+
     // managerId is injected from the X-User-Id gateway header in the controller.
     // Clients should NOT send this field — it is set server-side for security.
     private Long managerId;

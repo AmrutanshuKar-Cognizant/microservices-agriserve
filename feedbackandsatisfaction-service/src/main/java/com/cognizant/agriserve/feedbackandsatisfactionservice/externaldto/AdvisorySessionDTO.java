@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AdvisorySessionDTO {
-    private Long SessionId;
-    private Long title;
+    private Long sessionId;
+    private String contentTitle;
 }

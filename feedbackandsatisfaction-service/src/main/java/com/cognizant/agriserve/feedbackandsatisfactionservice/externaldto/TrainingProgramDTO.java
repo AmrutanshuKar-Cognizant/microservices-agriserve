@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TrainingProgramDTO {
-    private Long ProgramId;
-    private String ProgramName;
+    private Long programId;
+    private String title;
 }

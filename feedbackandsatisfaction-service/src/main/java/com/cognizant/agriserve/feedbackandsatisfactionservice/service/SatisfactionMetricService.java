@@ -5,7 +5,7 @@ import com.cognizant.agriserve.feedbackandsatisfactionservice.dto.SatisfactionMe
 
 import java.util.List;
 
-public interface SatisfactionMetricservice {
+public interface SatisfactionMetricService {
     SatisfactionMetricResponseDTO evaluate(SatisfactionMetricRequestDTO dto);
 
     List<SatisfactionMetricResponseDTO> getSatisfactionmetric();

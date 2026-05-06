@@ -87,6 +87,7 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         existingProgram.setDescription(requestDto.getDescription());
         existingProgram.setStartDate(requestDto.getStartDate());
         existingProgram.setEndDate(requestDto.getEndDate());
+        existingProgram.setStatus(requestDto.getStatus());
 
         TrainingProgram updatedProgram = programRepository.save(existingProgram);
         return modelMapper.map(updatedProgram, TrainingProgramResponseDTO.class);
@@ -136,6 +137,19 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         return programRepository.findByStatus(status).stream()
                 .map(program -> modelMapper.map(program, TrainingProgramResponseDTO.class))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public TrainingProgramResponseDTO getProgramForFeign(Long id) {
+        log.debug("Fetching Training Program data for internal microservice. ID: {}", id);
+
+        // 1. Fetch the Entity
+        TrainingProgram program = programRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Training Program not found with ID: " + id));
+
+        // 2. Map directly to DTO and return
+        return modelMapper.map(program, TrainingProgramResponseDTO.class);
+
     }
 
     private void validateDates(TrainingProgramRequestDTO requestDto) {

@@ -96,10 +96,22 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
     }
 
     @Override
+    public AdvisorySessionResponseDTO getAdvisoryById(Long id) {
+
+        AdvisorySession session = sessionRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Advisory Session not found with ID: " + id));
+
+        // 2. The Magic One-Liner!
+        // This tells ModelMapper to look at 'session' and copy all matching fields into a new 'AdvisorySessionResponseDTO'
+        return modelMapper.map(session, AdvisorySessionResponseDTO.class);
+    }
+
+    @Override
     public Boolean verifyAdvisorySessionExists(Long sessionId) {
         // Renamed from isExists to match what your ComplianceService is calling via Feign!
         return sessionRepo.existsById(sessionId);
     }
+
 
     // ==========================================
     // HELPER METHOD FOR ENRICHING DTOs
@@ -126,4 +138,6 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
 
         return res;
     }
+
+
 }

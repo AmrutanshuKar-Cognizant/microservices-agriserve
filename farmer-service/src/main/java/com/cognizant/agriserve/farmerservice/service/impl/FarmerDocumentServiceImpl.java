@@ -7,6 +7,7 @@ import com.cognizant.agriserve.farmerservice.dto.response.FarmerDocumentResponse
 import com.cognizant.agriserve.farmerservice.entity.Farmer;
 import com.cognizant.agriserve.farmerservice.entity.FarmerDocument;
 import com.cognizant.agriserve.farmerservice.exception.ResourceNotFoundException;
+import com.cognizant.agriserve.farmerservice.exception.UnauthorizedActionException;
 import com.cognizant.agriserve.farmerservice.service.FarmerDocumentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,13 +30,21 @@ public class FarmerDocumentServiceImpl implements FarmerDocumentService {
 
     @Override
     @Transactional
-    public FarmerDocumentResponseDTO uploadDocument(FarmerDocumentUploadRequestDTO dto) {
+    public FarmerDocumentResponseDTO uploadDocument(Long userId, FarmerDocumentUploadRequestDTO dto) {
         // Log using the numeric ID provided in the request
         log.info("Starting document upload process for Farmer ID: {}", dto.getFarmerId());
 
         // 1. Verify Farmer existence within the local database
         Farmer farmer = farmerRepository.findById(dto.getFarmerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Farmer not found with ID: " + dto.getFarmerId()));
+
+        if (!farmer.getUserId().equals(userId)) {
+            log.warn("SECURITY ALERT: User ID {} attempted to upload a document for Farmer ID {}",
+                    userId, farmer.getFarmerId());
+
+            // Throwing this specific exception tells Spring to return a 403 Forbidden status
+            throw new UnauthorizedActionException("You are not authorized to upload documents for this farmer profile.");
+        }
 
         // 2. Map DTO to Entity using Builder for clarity
         FarmerDocument document = FarmerDocument.builder()

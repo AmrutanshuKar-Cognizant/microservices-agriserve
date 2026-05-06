@@ -43,7 +43,7 @@ public class ParticipationServiceImpl implements ParticipationService {
         Workshop workshop = workshopRepository.findById(requestDto.getWorkshopId())
                 .orElseThrow(() -> new ResourceNotFoundException("Workshop", "ID", requestDto.getWorkshopId()));
 
-        // 2. Network-Resilient Check
+        // 2. Network-Resilient Check (Optional now, as Feign Client just verified they exist)
         verifyFarmerExists(requestDto.getFarmerId());
 
         boolean alreadyRegistered = participationRepository

@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface Feedbackrepo extends JpaRepository<Feedback,Long> {
-    List<Feedback> findByTrainingProgram_ProgramId(Long programId);
+public interface FeedbackRepository extends JpaRepository<Feedback,Long> {
+    List<Feedback> findByTrainingProgramId(Long programId);
 }

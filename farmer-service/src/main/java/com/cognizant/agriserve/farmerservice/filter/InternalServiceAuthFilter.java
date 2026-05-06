@@ -32,9 +32,14 @@ public class InternalServiceAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
         else if (gatewayRole != null && !gatewayRole.isEmpty()) {
+
+            // --- CRITICAL FIX: Clean up the Double Header Bug here ---
+            // If Feign sends "SERVICE, SERVICE", this safely reduces it to "SERVICE"
+            gatewayRole = gatewayRole.split(",")[0].trim();
+
             String finalRole = gatewayRole.startsWith("ROLE_") ? gatewayRole : "ROLE_" + gatewayRole;
             var auth = new UsernamePasswordAuthenticationToken(username, null, List.of(new SimpleGrantedAuthority(finalRole)));
-            // CRITICAL FIX: Set the authentication context here
+
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
         else {

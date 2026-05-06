@@ -25,10 +25,11 @@ public class FarmerDocumentController {
     @PostMapping("/upload")
     @PreAuthorize("hasRole('Farmer')")
     public ResponseEntity<FarmerDocumentResponseDTO> uploadDocument(
+            @RequestHeader("X-Logged-In-User-Id") Long userId,
             @Valid @RequestBody FarmerDocumentUploadRequestDTO requestDto) {
 
         log.info("API Request: Uploading new document for Farmer ID: {}", requestDto.getFarmerId());
-        FarmerDocumentResponseDTO uploadedDocument = farmerDocumentService.uploadDocument(requestDto);
+        FarmerDocumentResponseDTO uploadedDocument = farmerDocumentService.uploadDocument(userId, requestDto);
 
         return new ResponseEntity<>(uploadedDocument, HttpStatus.CREATED);
     }

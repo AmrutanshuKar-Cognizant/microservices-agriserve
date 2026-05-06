@@ -9,4 +9,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class LoginResponseDTO {
     String token;
+    private Long userId;
+    private String role;
 }

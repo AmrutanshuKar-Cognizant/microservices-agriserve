@@ -5,7 +5,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "USERSERVICE")
+@FeignClient(name = "USER-SERVICE")
 public interface UserClient {
     @GetMapping("/api/users/email/{email}")
     UserResponseDTO findByEmail(@PathVariable String email);

@@ -22,4 +22,6 @@ public interface AdvisorySessionService {
 
     // Updated: Renamed to perfectly match the Feign Client call from the Compliance Service
     Boolean verifyAdvisorySessionExists(Long sessionId);
+
+    AdvisorySessionResponseDTO getAdvisoryById(Long id);
 }

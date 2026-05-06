@@ -21,4 +21,6 @@ public interface TrainingProgramService {
     boolean checkProgramExists(Long programId);
 
     List<TrainingProgramResponseDTO> getProgramsByStatus(String status);
+
+    TrainingProgramResponseDTO getProgramForFeign(Long id);
 }

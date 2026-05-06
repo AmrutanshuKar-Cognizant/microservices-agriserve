@@ -5,9 +5,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name="TRAINING_PROGRAM")
+@FeignClient(name="TRAINING-SERVICE")
 public interface TrainingProgramClient {
 
-    @GetMapping("/api/AdvisorySession/{id}")
-    TrainingProgramDTO getbyid(@PathVariable Long id);
-}
+    @GetMapping("/api/programs/feigncall/{id}")
+    TrainingProgramDTO getProgramById(@PathVariable("id") Long id);}
